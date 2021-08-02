@@ -1,3 +1,9 @@
+<?php
+    session_start();
+    include_once("db.php");
+?>
+
+
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -11,7 +17,7 @@
 
     <hr>
 
-    <form action="" method="post">
+    <form action="" name="formulario" method="post">
         <label for="">Nome</label>
         <input type="text" name="nome">
         <br><br>
@@ -20,8 +26,38 @@
         <input type="email" name="email">
         <br><br>
 
-        <input type="submit" value="Cadastrar">
+        <input type="submit" name="botao" value="Cadastrar">
     </form>
+
+
+    <?php
+        $formulario = filter_input_array(INPUT_POST, FILTER_DEFAULT);
+
+        if(!empty($formulario['botao'])){
+            if(!empty($formulario['nome'] and !empty($formulario['email']))){
+                $nome = $formulario['nome'];
+                $email = $formulario['email'];
+
+                $insereUsuario = $conn->prepare("INSERT INTO cadastro (nome, email) VALUES ('$nome', '$email')");
+                $insereUsuario->execute();
+
+                if($insereUsuario->rowCount()){
+                    echo "<br>Usuário Cadastrado com sucesso<br>";
+                }else{
+                    echo "<br>ERRO ao cadastrar usuário.<br>";
+                }
+
+
+            }else{
+                echo "Você apertou o botão mas não preencheu a porra do formulário.<br><br>";
+            }
+            
+        }
+    ?>
+
+    <a href="./listarusuarios.php">Listar Usuários</a><br>
+
+
     
 </body>
 </html>
