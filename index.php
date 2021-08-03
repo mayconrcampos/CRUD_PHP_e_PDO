@@ -23,7 +23,7 @@
         <br><br>
 
         <label for="">Email</label>
-        <input type="email" name="email">
+        <input type="text" name="email">
         <br><br>
 
         <input type="submit" name="botao" value="Cadastrar">
@@ -35,21 +35,50 @@
 
         if(!empty($formulario['botao'])){
             if(!empty($formulario['nome'] and !empty($formulario['email']))){
-                $nome = $formulario['nome'];
-                $email = $formulario['email'];
+                if(filter_var($formulario['email'], FILTER_VALIDATE_EMAIL)){
+                    // Removendo espaços em branco do inicio e fim
+                    $formulario = array_map('trim', $formulario);
 
-                $insereUsuario = $conn->prepare("INSERT INTO cadastro (nome, email) VALUES ('$nome', '$email')");
-                $insereUsuario->execute();
+                    // Atribuindo POSTs para variáveis
+                    $nome = $formulario['nome'];
+                    $email = $formulario['email'];
 
-                if($insereUsuario->rowCount()){
-                    echo "<br>Usuário Cadastrado com sucesso<br>";
+                    // Verificando se nome OU email já existem no DB.
+                    $existe = $conn->prepare("SELECT nome, email FROM cadastro WHERE nome=? OR email=?");
+                    $existe->execute(array($nome, $email));
+                    $linha = $existe->fetchAll();
+
+                    if(empty($linha)){
+                        // Insert usando $conn->prepare
+                        $insereUsuario = $conn->prepare("INSERT INTO cadastro (nome, email) VALUES (?, ?)");
+
+                        // Preenchendo cada campo indicado pelo (?) acima.
+                        $insereUsuario->bindParam(1, $nome, PDO::PARAM_STR);
+                        $insereUsuario->bindParam(2, $email, PDO::PARAM_STR);
+
+                        // Executando comando.
+                        $insereUsuario->execute();
+
+                        if($insereUsuario->rowCount()){
+                            echo "<p style='color: blue;'>Usuário Cadastrado com sucesso</p>";
+                        }else{
+                            echo "<p style='color: red;'>ERRO ao cadastrar usuário.</p>";
+                        }
+
+                    }else{
+                        echo "<p style='color: red;'>ERRO! Usuário já está cadastrado..</p>";
+                    }
+
+                    
+
                 }else{
-                    echo "<br>ERRO ao cadastrar usuário.<br>";
+                    echo "<p style='color: red;'>ERRO! Email inválido!.</p>";
                 }
 
+                
 
             }else{
-                echo "Você apertou o botão mas não preencheu a porra do formulário.<br><br>";
+                echo "<p style='color: red;'>Você apertou o botão mas não preencheu a porra do formulário.</p><br><br>";
             }
             
         }
