@@ -31,11 +31,18 @@
 
 
     <?php
+        // Recebendo dados do formulário
         $formulario = filter_input_array(INPUT_POST, FILTER_DEFAULT);
 
+        // Verificando se usuario apertou no botão
         if(!empty($formulario['botao'])){
+
+            // Verificando se formulário foi preenchido nome e email
             if(!empty($formulario['nome'] and !empty($formulario['email']))){
+
+                // Verificando se email é válido
                 if(filter_var($formulario['email'], FILTER_VALIDATE_EMAIL)){
+                    
                     // Removendo espaços em branco do inicio e fim
                     $formulario = array_map('trim', $formulario);
 
@@ -61,6 +68,9 @@
 
                         if($insereUsuario->rowCount()){
                             echo "<p style='color: blue;'>Usuário Cadastrado com sucesso</p>";
+                            
+
+
                         }else{
                             echo "<p style='color: red;'>ERRO ao cadastrar usuário.</p>";
                         }
@@ -76,7 +86,6 @@
                 }
 
                 
-
             }else{
                 echo "<p style='color: red;'>Você apertou o botão mas não preencheu a porra do formulário.</p><br><br>";
             }
