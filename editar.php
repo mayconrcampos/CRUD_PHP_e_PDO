@@ -1,6 +1,14 @@
 <?php
     session_start();
     include_once("db.php");
+
+    $id_user = $_GET['id'];
+
+    $usuario = $conn->prepare("SELECT nome, email FROM cadastro WHERE id=?");
+    $usuario->bindParam(1, $id_user, PDO::PARAM_INT);
+    $usuario->execute();
+
+    $linhaUSER = $usuario->fetch(PDO::FETCH_ASSOC);
 ?>
 
 
@@ -13,19 +21,19 @@
     <title>CRUD - PDO - INSERT</title>
 </head>
 <body>
-    <h1>CRUD com PDO - Cadastrar Usuário e Email</h1>
+    <h1>CRUD com PDO - Editar Usuário e Email</h1>
 
     <hr>
 
     <form action="" name="formulario" method="post">
         <label for="">Nome</label>
-        <input type="text" name="nome">
+        <input type="text" name="nome" value="<?php echo $linhaUSER['nome'] ?>">
         <br><br>
 
         <label for="">Email</label>
-        <input type="text" name="email">
+        <input type="text" name="email" value="<?php echo $linhaUSER['email'] ?>">
         <br><br>
-
+        <input type="hidden" name="id" value="<?php echo $id_user ?>">
         <input type="submit" name="botao" value="Cadastrar">
     </form>
 
@@ -47,38 +55,31 @@
                     $formulario = array_map('trim', $formulario);
 
                     // Atribuindo POSTs para variáveis
+                    $id = $formulario['id'];
                     $nome = $formulario['nome'];
                     $email = $formulario['email'];
 
-                    // Verificando se nome OU email já existem no DB.
-                    $existe = $conn->prepare("SELECT nome, email FROM cadastro WHERE nome=? OR email=?");
-                    $existe->execute(array($nome, $email));
-                    $linha = $existe->fetchAll();
+                    //echo "id ".$id." nome ".$nome." email ".$email;
 
-                    if(empty($linha)){
-                        // Insert usando $conn->prepare
-                        $insereUsuario = $conn->prepare("INSERT INTO cadastro (nome, email) VALUES (?, ?)");
+                    // UPDATE usando $conn->prepare
+                    $updateUsuario = $conn->prepare("UPDATE cadastro SET nome=?, email=? WHERE id=?");
 
-                        // Preenchendo cada campo indicado pelo (?) acima.
-                        $insereUsuario->bindParam(1, $nome, PDO::PARAM_STR);
-                        $insereUsuario->bindParam(2, $email, PDO::PARAM_STR);
-
-                        // Executando comando.
-                        $insereUsuario->execute();
-
-                        if($insereUsuario->rowCount()){
-                            $_SESSION['sucesso'] = "<p style='color: blue;'>Usuário Cadastrado com sucesso</p>";
-                            header("Location: listar.php");
-                            
-                        }else{
-                            echo "<p style='color: red;'>ERRO ao cadastrar usuário.</p>";
-                        }
-
-                    }else{
-                        echo "<p style='color: red;'>ERRO! Usuário já está cadastrado..</p>";
-                    }
-
+                    // Preenchendo cada campo indicado pelo (?) acima.
+                    $updateUsuario->bindParam(1, $nome, PDO::PARAM_STR);
+                    $updateUsuario->bindParam(2, $email, PDO::PARAM_STR);
+                    $updateUsuario->bindParam(3, $id, PDO::PARAM_INT);
                     
+                    // Executando comando.
+                    $updateUsuario->execute();
+
+                    if($updateUsuario->rowCount()){
+                        $_SESSION['sucesso'] = "<p style='color: blue;'>Usuário Atualizado com sucesso</p>";
+                        header("Location: listar.php");
+                        
+                    }else{
+                        echo "<p style='color: red;'>ERRO ao cadastrar usuário.</p>";
+                        
+                    }
 
                 }else{
                     echo "<p style='color: red;'>ERRO! Email inválido!.</p>";
@@ -92,7 +93,7 @@
         }
     ?>
 
-    <a href="./listar.php">Listar Usuários</a><br>
+    <a href="listar.php">Listar Usuários</a><br>
 
 
     
